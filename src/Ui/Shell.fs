@@ -1,8 +1,6 @@
 namespace Ui
 
 open Elmish
-open Avalonia
-open Avalonia.Media
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI
@@ -19,38 +17,41 @@ module Shell =
         | StartScreenMsg of Screens.StartScreen.Msg
         | Effect of Effect
 
-    type UiState =
-        | StartScreenState of Screens.StartScreen.State
-        | GameState of State
-
     let init () =
-        StartScreenState { Savegame = NotAvailable }, Cmd.none
+        (PreGameState
+            { Screen = PreGameScreen.Start
+              Savegame = NotAvailable },
+         Cmd.none)
 
-    let update msg state =
+    let update msg state : UiState * Cmd<_> =
         match msg with
         | StartScreenMsg startScreenMsg ->
             match state with
-            | StartScreenState startScreenState ->
+            | PreGameState preGameState ->
                 let (updatedState, cmd) =
-                    Screens.StartScreen.update startScreenMsg startScreenState
+                    Screens.StartScreen.update startScreenMsg preGameState
 
                 match updatedState.Savegame with
-                | Available state -> (GameState state, cmd)
-                | Incompatible -> (StartScreenState updatedState, cmd)
-                | NotAvailable -> (StartScreenState updatedState, cmd)
+                // TODO: Change when loading is implemented.
+                | Available _ ->
+                    (PreGameState preGameState, Cmd.map StartScreenMsg cmd)
+                | _ -> (PreGameState updatedState, Cmd.map StartScreenMsg cmd)
             | _ -> (state, Cmd.none)
         | Effect effect ->
             match state with
-            | StartScreenState _ -> (state, Cmd.none)
-            | GameState state ->
-                (GameState <| State.Root.apply effect state, Cmd.none)
+            | PreGameState _ -> (state, Cmd.none)
+            | GameState gameState ->
+                (GameState
+                    { gameState with
+                          State = State.Root.apply effect gameState.State },
+                 Cmd.none)
 
     let view state dispatch =
         StackPanel.create [
             StackPanel.margin (30.0, 30.0)
             StackPanel.children [
                 match state with
-                | StartScreenState state ->
+                | PreGameState state ->
                     Screens.StartScreen.view state (StartScreenMsg >> dispatch)
                 | GameState _ ->
                     TextBlock.create [

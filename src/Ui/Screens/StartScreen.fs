@@ -1,12 +1,12 @@
 namespace Ui.Screens
 
-open System
 open Avalonia.Controls
 open Avalonia.Layout
-open Elmish
 open Avalonia.FuncUI.DSL
+open Elmish
+open System
 
-open Savegame
+open Ui.Types
 
 module StartScreen =
     /// Current version of the game as loaded from the fsproj.
@@ -18,16 +18,21 @@ module StartScreen =
             .GetName()
             .Version.ToString()
 
-    type State = { Savegame: SavegameState }
-
     type Msg =
-        | SetSavegame of SavegameState
+        | LoadSavegame
+        | SetSavegame of Savegame.SavegameState
         | Exit
 
-    let init () = { Savegame = NotAvailable }, Cmd.none
+    let init () =
+        ({ Screen = Start
+           Savegame = Savegame.NotAvailable },
+         Cmd.ofMsg LoadSavegame)
 
     let update msg state =
         match msg with
+        | LoadSavegame ->
+            Savegame.load ()
+            |> fun savegame -> (state, Cmd.ofMsg (SetSavegame savegame))
         | SetSavegame savegame -> ({ state with Savegame = savegame }, Cmd.none)
         | Exit ->
             Environment.Exit(0)
@@ -44,10 +49,15 @@ module StartScreen =
 
     let private isSavegameAvailable state =
         match state.Savegame with
-        | Available _ -> true
+        | Savegame.Available _ -> true
         | _ -> false
 
-    let view (state: State) dispatch =
+    let private isIncompatibleSavegame state =
+        match state.Savegame with
+        | Savegame.Incompatible -> true
+        | _ -> false
+
+    let view (state: PreGameState) dispatch =
         DockPanel.create [
             DockPanel.horizontalAlignment HorizontalAlignment.Stretch
             DockPanel.verticalAlignment VerticalAlignment.Stretch
@@ -72,7 +82,18 @@ module StartScreen =
                 ]
 
                 StackPanel.create [
+                    StackPanel.margin (0.0, 20.0)
                     StackPanel.children [
+                        if isIncompatibleSavegame state then
+                            TextBlock.create [
+                                TextBlock.horizontalAlignment
+                                    HorizontalAlignment.Center
+                                TextBlock.margin (0.0, 20.0)
+                                TextBlock.classes [ "error" ]
+                                TextBlock.text
+                                    "Your savegame was incompatible and was ignored. You'll need to manually correct it if you want to use it"
+                            ]
+
                         button [ Button.content "New game" ]
 
                         button [
