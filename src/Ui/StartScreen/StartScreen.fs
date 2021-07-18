@@ -9,6 +9,15 @@ open Avalonia.FuncUI.DSL
 open Savegame
 
 module StartScreen =
+    /// Current version of the game as loaded from the fsproj.
+    let version =
+        System
+            .Reflection
+            .Assembly
+            .GetEntryAssembly()
+            .GetName()
+            .Version.ToString()
+
     type State = { Savegame: SavegameState }
 
     type Msg =
@@ -43,11 +52,23 @@ module StartScreen =
             DockPanel.horizontalAlignment HorizontalAlignment.Stretch
             DockPanel.verticalAlignment VerticalAlignment.Stretch
             DockPanel.children [
-                TextBlock.create [
-                    TextBlock.dock Dock.Top
-                    TextBlock.horizontalAlignment HorizontalAlignment.Center
-                    TextBlock.fontSize 48.0
-                    TextBlock.text "Duets"
+                StackPanel.create [
+                    StackPanel.dock Dock.Top
+                    StackPanel.children [
+                        TextBlock.create [
+                            TextBlock.horizontalAlignment
+                                HorizontalAlignment.Center
+                            TextBlock.fontSize 48.0
+                            TextBlock.text "Duets"
+                        ]
+
+                        TextBlock.create [
+                            TextBlock.horizontalAlignment
+                                HorizontalAlignment.Center
+                            TextBlock.fontSize 12.0
+                            TextBlock.text $"v{version}"
+                        ]
+                    ]
                 ]
 
                 StackPanel.create [
