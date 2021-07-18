@@ -4,37 +4,37 @@ module Songs =
     open Aether
     open Entities
 
-    let private applyToUnfinished map bandId op =
+    let private applyToUnfinished bandId op =
         let unfinishedSongLens =
             Lenses.FromState.Songs.unfinishedByBand_ bandId
 
-        map (Optic.map unfinishedSongLens op)
+        Optic.map unfinishedSongLens op
 
-    let private applyToFinished map bandId op =
+    let private applyToFinished bandId op =
         let finishedSongLens =
             Lenses.FromState.Songs.finishedByBand_ bandId
 
-        map (Optic.map finishedSongLens op)
+        Optic.map finishedSongLens op
 
-    let addUnfinished map (band: Band) unfinishedSong =
+    let addUnfinished (band: Band) unfinishedSong =
         let song = Song.fromUnfinished unfinishedSong
 
         let addUnfinishedSong = Map.add song.Id unfinishedSong
-        applyToUnfinished map band.Id addUnfinishedSong
+        applyToUnfinished band.Id addUnfinishedSong
 
-    let addFinished map (band: Band) finishedSong =
+    let addFinished (band: Band) finishedSong =
         let song = Song.fromFinished finishedSong
 
         let addFinishedSong = Map.add song.Id finishedSong
 
-        applyToFinished map band.Id addFinishedSong
+        applyToFinished band.Id addFinishedSong
 
-    let removeUnfinished map (band: Band) songId =
+    let removeUnfinished (band: Band) songId =
         let removeUnfinishedSong = Map.remove songId
 
-        applyToUnfinished map band.Id removeUnfinishedSong
+        applyToUnfinished band.Id removeUnfinishedSong
 
-    let removeFinished map (band: Band) songId =
+    let removeFinished (band: Band) songId =
         let removeFinishedSong = Map.remove songId
 
-        applyToFinished map band.Id removeFinishedSong
+        applyToFinished band.Id removeFinishedSong

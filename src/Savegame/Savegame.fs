@@ -4,7 +4,7 @@ open Common
 open Entities
 
 type SavegameState =
-    | Available
+    | Available of State
     | NotAvailable
     | Incompatible
 
@@ -14,8 +14,7 @@ let private loadStateFromSavegame () =
     Files.savegamePath ()
     |> Files.readAll
     |> Option.bind Serializer.deserialize
-    |> Option.map State.Root.set
-    |> Option.map (fun _ -> Available)
+    |> Option.map Available
     |> Option.defaultValue NotAvailable
 
 /// Attempts to write the given state into the savegame file.
@@ -66,4 +65,4 @@ let load = savegameAgent.Read
 
 /// Attempts to write the current state into the savegame file doing so in a
 /// separate thread.
-let save () = savegameAgent.Write(State.Root.get ())
+let save = savegameAgent.Write

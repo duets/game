@@ -4,5 +4,5 @@ module Calendar =
     open Aether
     open Entities
 
-    let setTime map time =
-        map (Optic.set Lenses.State.today_ time)
+    let setTime time =
+        Optic.set Lenses.State.today_ time

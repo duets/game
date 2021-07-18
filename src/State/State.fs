@@ -3,87 +3,56 @@ module State.Root
 
 open Entities
 
-type StateMessage =
-    | Get of AsyncReplyChannel<State>
-    | Set of State
-
-type StateAgent() =
-    let state =
-        MailboxProcessor.Start
-        <| fun inbox ->
-            let rec loop state =
-                async {
-                    let! msg = inbox.Receive()
-
-                    match msg with
-                    | Get channel ->
-                        channel.Reply state
-                        return! loop state
-                    | Set value -> return! loop value
-                }
-
-            loop State.empty
-
-    member this.Get() = state.PostAndReply Get
-
-    member this.Set value = Set value |> state.Post
-
-    member this.Map fn = this.Get() |> fn |> this.Set
-
-let staticAgent = StateAgent()
-
-/// Returns the state of the game.
-let get = staticAgent.Get
-
-/// Sets the state of the game. Prefer to use `apply` instead, only exposed
-/// for the savegame loading.
-let set = staticAgent.Set
-
 /// Applies an effect to the state.
-let apply effect =
+let apply effect state =
     match effect with
-    | GameCreated state -> staticAgent.Set state
-    | TimeAdvanced time -> Calendar.setTime staticAgent.Map time
+    | GameCreated initialState -> initialState
+    | TimeAdvanced time -> Calendar.setTime time state
     | SongStarted (band, unfinishedSong) ->
-        Songs.addUnfinished staticAgent.Map band unfinishedSong
+        Songs.addUnfinished band unfinishedSong state
     | SongImproved (band, (Diff (_, unfinishedSong))) ->
-        Songs.addUnfinished staticAgent.Map band unfinishedSong
+        Songs.addUnfinished band unfinishedSong state
     | SongFinished (band, finishedSong) ->
         let song = Song.fromFinished finishedSong
-        Songs.removeUnfinished staticAgent.Map band song.Id
-        Songs.addFinished staticAgent.Map band finishedSong
+
+        Songs.removeUnfinished band song.Id state
+        |> Songs.addFinished band finishedSong
     | SongDiscarded (band, unfinishedSong) ->
         let song = Song.fromUnfinished unfinishedSong
-        Songs.removeUnfinished staticAgent.Map band song.Id
+        Songs.removeUnfinished band song.Id state
     | MemberHired (band, currentMember) ->
-        Bands.addMember staticAgent.Map band currentMember
+        Bands.addMember band currentMember state
     | MemberFired (band, currentMember, pastMember) ->
-        Bands.removeMember staticAgent.Map band currentMember
-        Bands.addPastMember staticAgent.Map band pastMember
+        Bands.removeMember band currentMember state
+        |> Bands.addPastMember band pastMember
     | SkillImproved (character, Diff (_, skill)) ->
-        Skills.add staticAgent.Map character skill
+        Skills.add character skill state
     | MoneyTransferred (account, transaction) ->
-        Bank.transfer staticAgent.Map account transaction
+        Bank.transfer account transaction state
     | MoneyEarned (account, transaction) ->
-        Bank.transfer staticAgent.Map account transaction
+        Bank.transfer account transaction state
     | AlbumRecorded (band, album) ->
-        Albums.addUnreleased staticAgent.Map band album
+        let updatedState = Albums.addUnreleased band album state
         let (UnreleasedAlbum ua) = album
 
         ua.TrackList
         |> List.map (fun ((FinishedSong fs), _) -> fs.Id)
-        |> List.iter (Songs.removeFinished staticAgent.Map band)
+        |> List.fold
+            (fun state song -> Songs.removeFinished band song state)
+            updatedState
     | AlbumRenamed (band, unreleasedAlbum) ->
         let (UnreleasedAlbum album) = unreleasedAlbum
-        Albums.removeUnreleased staticAgent.Map band album.Id
-        Albums.addUnreleased staticAgent.Map band unreleasedAlbum
+
+        Albums.removeUnreleased band album.Id state
+        |> Albums.addUnreleased band unreleasedAlbum
     | AlbumReleased (band, releasedAlbum) ->
         let album = releasedAlbum.Album
-        Albums.removeUnreleased staticAgent.Map band album.Id
-        Albums.addReleased staticAgent.Map band releasedAlbum
+
+        Albums.removeUnreleased band album.Id state
+        |> Albums.addReleased band releasedAlbum
     | AlbumReleasedUpdate (band, releasedAlbum) ->
         let album = releasedAlbum.Album
-        Albums.removeReleased staticAgent.Map band album.Id
-        Albums.addReleased staticAgent.Map band releasedAlbum
-    | GenreMarketsUpdated genreMarkets ->
-        Market.set staticAgent.Map genreMarkets
+
+        Albums.removeReleased band album.Id state
+        |> Albums.addReleased band releasedAlbum
+    | GenreMarketsUpdated genreMarkets -> Market.set genreMarkets state

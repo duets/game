@@ -1,0 +1,3 @@
+[submodule "deps/Avalonia.FuncUI"]
+	path = deps/Avalonia.FuncUI
+	url = https://github.com/sleepyfran/Avalonia.FuncUI

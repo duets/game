@@ -6,7 +6,7 @@ module Skills =
     open Common
     open Entities
 
-    let add map (character: Character) (skillWithLevel: SkillWithLevel) =
+    let add (character: Character) (skillWithLevel: SkillWithLevel) =
         let (skill, _) = skillWithLevel
 
         let skillLens =
@@ -15,4 +15,4 @@ module Skills =
 
         let addSkill map = Map.add skill.Id skillWithLevel map
 
-        map (Optic.map skillLens addSkill)
+        Optic.map skillLens addSkill

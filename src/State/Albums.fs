@@ -4,34 +4,34 @@ module Albums =
     open Aether
     open Entities
 
-    let private applyToUnreleased map bandId op =
+    let private applyToUnreleased bandId op =
         let unreleasedAlbumsLens =
             Lenses.FromState.Albums.unreleasedByBand_ bandId
 
-        map (Optic.map unreleasedAlbumsLens op)
+        Optic.map unreleasedAlbumsLens op
 
-    let private applyToReleased map bandId op =
+    let private applyToReleased bandId op =
         let releasedAlbumsLens =
             Lenses.FromState.Albums.releasedByBand_ bandId
 
-        map (Optic.map releasedAlbumsLens op)
+        Optic.map releasedAlbumsLens op
 
-    let addUnreleased map (band: Band) unreleasedAlbum =
+    let addUnreleased (band: Band) unreleasedAlbum =
         let (UnreleasedAlbum album) = unreleasedAlbum
         let addUnreleasedAlbum = Map.add album.Id unreleasedAlbum
-        applyToUnreleased map band.Id addUnreleasedAlbum
+        applyToUnreleased band.Id addUnreleasedAlbum
 
-    let addReleased map (band: Band) releasedAlbum =
+    let addReleased (band: Band) releasedAlbum =
         let album = releasedAlbum.Album
         let addReleasedAlbum = Map.add album.Id releasedAlbum
-        applyToReleased map band.Id addReleasedAlbum
+        applyToReleased band.Id addReleasedAlbum
 
-    let removeUnreleased map (band: Band) albumId =
+    let removeUnreleased (band: Band) albumId =
         let removeUnreleasedAlbum = Map.remove albumId
 
-        applyToUnreleased map band.Id removeUnreleasedAlbum
+        applyToUnreleased band.Id removeUnreleasedAlbum
 
-    let removeReleased map (band: Band) albumId =
+    let removeReleased (band: Band) albumId =
         let removeReleasedAlbum = Map.remove albumId
 
-        applyToReleased map band.Id removeReleasedAlbum
+        applyToReleased band.Id removeReleasedAlbum
