@@ -6,29 +6,35 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <EmbeddedResource Remove=".template.config\**"/>
+        <EmbeddedResource Remove=".template.config\**" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\deps\Avalonia.FuncUI\src\Avalonia.FuncUI.DSL\Avalonia.FuncUI.DSL.fsproj"/>
-        <ProjectReference Include="..\..\deps\Avalonia.FuncUI\src\Avalonia.FuncUI.Elmish\Avalonia.FuncUI.Elmish.fsproj"/>
-        <ProjectReference Include="..\..\deps\Avalonia.FuncUI\src\Avalonia.FuncUI\Avalonia.FuncUI.fsproj"/>
-        <ProjectReference Include="..\Savegame\Savegame.fsproj"/>
-        <ProjectReference Include="..\Simulation\Simulation.fsproj"/>
-        <ProjectReference Include="..\State\State.fsproj"/>
+        <Watch Include="**\*.fs" />
+        <Watch Include="**\*.xaml" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia.Diagnostics" Version="0.10.6"/>
+        <ProjectReference Include="..\..\deps\Avalonia.FuncUI\src\Avalonia.FuncUI.DSL\Avalonia.FuncUI.DSL.fsproj" />
+        <ProjectReference Include="..\..\deps\Avalonia.FuncUI\src\Avalonia.FuncUI.Elmish\Avalonia.FuncUI.Elmish.fsproj" />
+        <ProjectReference Include="..\..\deps\Avalonia.FuncUI\src\Avalonia.FuncUI\Avalonia.FuncUI.fsproj" />
+        <ProjectReference Include="..\Savegame\Savegame.fsproj" />
+        <ProjectReference Include="..\Simulation\Simulation.fsproj" />
+        <ProjectReference Include="..\State\State.fsproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="StartScreen\StartScreen.fs"/>
-        <Compile Include="Shell.fs"/>
-        <Compile Include="Program.fs"/>
+        <PackageReference Include="Avalonia.Diagnostics" Version="0.10.6" />
+        <PackageReference Include="Live.Avalonia" Version="1.2.1" />
     </ItemGroup>
 
     <ItemGroup>
-        <AvaloniaResource Include="**\*.xaml"/>
+        <Compile Include="StartScreen\StartScreen.fs" />
+        <Compile Include="Shell.fs" />
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AvaloniaResource Include="**\*.xaml" />
     </ItemGroup>
 </Project>
